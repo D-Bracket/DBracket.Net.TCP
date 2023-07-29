@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DBracket.Net.TCP.DataSync.Example (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "DBracket.Net.TCP.DataSync.Example (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

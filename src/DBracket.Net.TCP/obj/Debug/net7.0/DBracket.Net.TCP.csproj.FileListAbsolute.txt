@@ -1,0 +1,12 @@
+C:\Users\D-Bracket\Documents\GitHub\DBracket.Net.TCP\src\DBracket.Net.TCP\bin\Debug\net7.0\DBracket.Net.TCP.deps.json
+C:\Users\D-Bracket\Documents\GitHub\DBracket.Net.TCP\src\DBracket.Net.TCP\bin\Debug\net7.0\DBracket.Net.TCP.dll
+C:\Users\D-Bracket\Documents\GitHub\DBracket.Net.TCP\src\DBracket.Net.TCP\bin\Debug\net7.0\DBracket.Net.TCP.pdb
+C:\Users\D-Bracket\Documents\GitHub\DBracket.Net.TCP\src\DBracket.Net.TCP\obj\Debug\net7.0\DBracket.Net.TCP.csproj.AssemblyReference.cache
+C:\Users\D-Bracket\Documents\GitHub\DBracket.Net.TCP\src\DBracket.Net.TCP\obj\Debug\net7.0\DBracket.Net.TCP.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\D-Bracket\Documents\GitHub\DBracket.Net.TCP\src\DBracket.Net.TCP\obj\Debug\net7.0\DBracket.Net.TCP.AssemblyInfoInputs.cache
+C:\Users\D-Bracket\Documents\GitHub\DBracket.Net.TCP\src\DBracket.Net.TCP\obj\Debug\net7.0\DBracket.Net.TCP.AssemblyInfo.cs
+C:\Users\D-Bracket\Documents\GitHub\DBracket.Net.TCP\src\DBracket.Net.TCP\obj\Debug\net7.0\DBracket.Net.TCP.csproj.CoreCompileInputs.cache
+C:\Users\D-Bracket\Documents\GitHub\DBracket.Net.TCP\src\DBracket.Net.TCP\obj\Debug\net7.0\DBracket.Net.TCP.dll
+C:\Users\D-Bracket\Documents\GitHub\DBracket.Net.TCP\src\DBracket.Net.TCP\obj\Debug\net7.0\refint\DBracket.Net.TCP.dll
+C:\Users\D-Bracket\Documents\GitHub\DBracket.Net.TCP\src\DBracket.Net.TCP\obj\Debug\net7.0\DBracket.Net.TCP.pdb
+C:\Users\D-Bracket\Documents\GitHub\DBracket.Net.TCP\src\DBracket.Net.TCP\obj\Debug\net7.0\ref\DBracket.Net.TCP.dll
