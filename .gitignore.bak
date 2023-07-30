@@ -4,15 +4,17 @@ bin-release/
 bin-x64/
 [Oo]bj/
 [Bb]in/
+bin/
+obj/
 
 # Other files and folders
 .settings/
-bin
-obj
+
 packages
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
+DBracket.Net.TCP.vs  
 
 # Executables
 *.swf
