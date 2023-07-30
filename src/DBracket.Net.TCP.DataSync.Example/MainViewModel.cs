@@ -29,10 +29,10 @@ namespace DBracket.Net.TCP.DataSync.Example
                 People.Add(new Person("James", "Nobody", i, "Somewhere I belong"));
             }
 
-            for (int i = 0; i < 100000; i++)
-            {
-                TargetPeople.Add(new Person("", "", 0, ""));
-            }
+            //for (int i = 0; i < 100000; i++)
+            //{
+            //    TargetPeople.Add(new Person("", "", 0, ""));
+            //}
 
             var settings = new DataSyncSourceSettings(IPAddress.Parse(SourceIPAddress), SourcePort, AlwaysKeepUpdating, UpdateCycleTimeMs);
             _syncSource = new DataSyncSource(settings, People);

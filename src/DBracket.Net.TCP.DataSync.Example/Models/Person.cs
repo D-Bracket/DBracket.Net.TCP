@@ -16,6 +16,11 @@ namespace DBracket.Net.TCP.DataSync.Example.Models
 
 
         #region "------------------------------ Constructor --------------------------------"
+        public Person()
+        {
+            
+        }
+
         public Person(string name, string lastName, int age, string address)
         {
             Name = name;

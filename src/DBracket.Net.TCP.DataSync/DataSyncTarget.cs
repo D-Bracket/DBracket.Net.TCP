@@ -12,10 +12,14 @@ namespace DBracket.Net.TCP.DataSync
 
         private static Stopwatch _sw = Stopwatch.StartNew();
         private static Stopwatch _swCycle = Stopwatch.StartNew();
-        private static int _i = 0;
         private static List<PropertyInfo> _propInfos = new List<PropertyInfo>();
 
         private IList _syncObject;
+        private Type _listItemType;
+
+        private bool _dataReadActive;
+        private bool _dataWriteActive;
+        private string _newData;
         #endregion
 
 
@@ -27,18 +31,10 @@ namespace DBracket.Net.TCP.DataSync
                 throw new ArgumentNullException();
 
             _syncObject = syncObject;
-            //if (syncObject is IList)
-            //{
-            //    // Setup Array sync
-            //    _syncObject = (IList<ObjectToExchange>)syncObject;
-            //}
-            //else
-            //{
-            //    // Setup single object sync
-            //}
 
             // Get object infos
-            var props = _syncObject[0].GetType().GetProperties();
+            _listItemType = _syncObject.GetType().GenericTypeArguments[0];
+            var props = _listItemType.GetProperties();
             foreach (var prop in props)
             {
                 var attribute = prop.GetCustomAttribute<ExchangeAttribute>();
@@ -48,6 +44,8 @@ namespace DBracket.Net.TCP.DataSync
                     continue;
                 }
             }
+            Test();
+
 
             // Init Server
             _server = new Server();
@@ -62,9 +60,10 @@ namespace DBracket.Net.TCP.DataSync
 
         #region "--------------------------------- Methods ---------------------------------"
         #region "----------------------------- Public Methods ------------------------------"
-        private bool _dataReadActive;
-        private bool _dataWriteActive;
-        private string _newData;
+        private void Test()
+        {
+            var t = Activator.CreateInstance(_listItemType);
+        }
         #endregion
 
         #region "----------------------------- Private Methods -----------------------------"
@@ -87,7 +86,7 @@ namespace DBracket.Net.TCP.DataSync
                 // Recieve and convert the data back
                 //_sw.Restart();
                 //long microseconds = 0;
-                var objectPropValues = newData.Split(';');
+                var objectPropValues = newData.Split(DataSyncSource.SEPERATOR);
 
                 Parallel.For(0, objectPropValues.Length, currentObjectNumber =>
                 {
@@ -108,11 +107,57 @@ namespace DBracket.Net.TCP.DataSync
                             {
                                 _propInfos[propNumber].SetValue(_syncObject[currentObjectNumber], values[propNumber]);
                             }
+                            else if (_propInfos[propNumber].PropertyType == typeof(sbyte))
+                            {
+                                var convertedValue = Convert.ToSByte(values[propNumber]);
+                                _propInfos[propNumber].SetValue(_syncObject[currentObjectNumber], convertedValue);
+                            }
+                            else if (_propInfos[propNumber].PropertyType == typeof(byte))
+                            {
+                                var convertedValue = Convert.ToByte(values[propNumber]);
+                                _propInfos[propNumber].SetValue(_syncObject[currentObjectNumber], convertedValue);
+                            }
+                            else if (_propInfos[propNumber].PropertyType == typeof(short))
+                            {
+                                var convertedValue = Convert.ToInt16(values[propNumber]);
+                                _propInfos[propNumber].SetValue(_syncObject[currentObjectNumber], convertedValue);
+                            }
+                            else if (_propInfos[propNumber].PropertyType == typeof(ushort))
+                            {
+                                var convertedValue = Convert.ToUInt16(values[propNumber]);
+                                _propInfos[propNumber].SetValue(_syncObject[currentObjectNumber], convertedValue);
+                            }
                             else if (_propInfos[propNumber].PropertyType == typeof(int))
                             {
-                                var intValue = Convert.ToInt32(values[propNumber]);
-                                _propInfos[propNumber].SetValue(_syncObject[currentObjectNumber], intValue);
+                                var convertedValue = Convert.ToInt32(values[propNumber]);
+                                _propInfos[propNumber].SetValue(_syncObject[currentObjectNumber], convertedValue);
                             }
+                            else if (_propInfos[propNumber].PropertyType == typeof(uint))
+                            {
+                                var convertedValue = Convert.ToUInt32(values[propNumber]);
+                                _propInfos[propNumber].SetValue(_syncObject[currentObjectNumber], convertedValue);
+                            }
+                            else if (_propInfos[propNumber].PropertyType == typeof(long))
+                            {
+                                var convertedValue = Convert.ToInt64(values[propNumber]);
+                                _propInfos[propNumber].SetValue(_syncObject[currentObjectNumber], convertedValue);
+                            }
+                            else if (_propInfos[propNumber].PropertyType == typeof(ulong))
+                            {
+                                var convertedValue = Convert.ToUInt64(values[propNumber]);
+                                _propInfos[propNumber].SetValue(_syncObject[currentObjectNumber], convertedValue);
+                            }
+                            else if (_propInfos[propNumber].PropertyType == typeof(double))
+                            {
+                                var convertedValue = Convert.ToDouble(values[propNumber]);
+                                _propInfos[propNumber].SetValue(_syncObject[currentObjectNumber], convertedValue);
+                            }
+                            else if (_propInfos[propNumber].PropertyType == typeof(bool))
+                            {
+                                var convertedValue = Convert.ToBoolean(values[propNumber]);
+                                _propInfos[propNumber].SetValue(_syncObject[currentObjectNumber], convertedValue);
+                            }
+
 
                         }
                         //Console.WriteLine($"Doing things {currentObjectNumber}");
