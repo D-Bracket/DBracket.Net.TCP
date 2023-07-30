@@ -23,6 +23,7 @@ namespace DBracket.Net.TCP.DataSync.Example
         #region "------------------------------ Constructor --------------------------------"
         public MainViewModel()
         {
+            //46804
             for (int i = 0; i < 100000; i++)
             {
                 People.Add(new Person("James", "Nobody", i, "Somewhere I belong"));
