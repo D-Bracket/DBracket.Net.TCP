@@ -1,9 +1,6 @@
-﻿using DBracket.Net.TCP.DataSync.Example.Utilities;
-
-namespace DBracket.Net.TCP.DataSync.Example.Models
+﻿namespace DBracket.Net.TCP.DataSync
 {
-    
-    internal class Person : PropertyChangedBase
+    public class SyncObjectAttribute : Attribute
     {
         #region "----------------------------- Private Fields ------------------------------"
 
@@ -12,17 +9,9 @@ namespace DBracket.Net.TCP.DataSync.Example.Models
 
 
         #region "------------------------------ Constructor --------------------------------"
-        public Person()
+        public SyncObjectAttribute()
         {
-            
-        }
-
-        public Person(string name, string lastName, int age, string address)
-        {
-            Name = name;
-            LastName = lastName;
-            Age = age;
-            Address = address;
+                
         }
         #endregion
 
@@ -34,7 +23,10 @@ namespace DBracket.Net.TCP.DataSync.Example.Models
         #endregion
 
         #region "----------------------------- Private Methods -----------------------------"
-
+        public void SetIdentifier(ulong id)
+        {
+            ID = id;
+        }
         #endregion
 
         #region "------------------------------ Event Handling -----------------------------"
@@ -46,16 +38,7 @@ namespace DBracket.Net.TCP.DataSync.Example.Models
 
         #region "--------------------------- Public Propterties ----------------------------"
         #region "------------------------------- Properties --------------------------------"
-        [SyncProperty]
-        public string Name { get => _name; set { _name = value; OnMySelfChanged(); } }
-        private string _name;
-        public string LastName { get => _lastName; set { _lastName = value; OnMySelfChanged(); } }
-        private string _lastName = "Test";
-        [SyncProperty]
-        public int Age { get => _age; set { _age = value; OnMySelfChanged(); } }
-        private int _age;
-        public string Address { get => _address; set { _address = value; OnMySelfChanged(); } }
-        private string _address;
+        public ulong ID { get; private set; }
         #endregion
 
         #region "--------------------------------- Events ----------------------------------"

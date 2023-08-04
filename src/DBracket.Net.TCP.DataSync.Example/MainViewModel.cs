@@ -1,7 +1,6 @@
 ﻿using DBracket.Net.TCP.DataSync.Example.Models;
 using DBracket.Net.TCP.DataSync.Example.Utilities;
 using System;
-using System.Collections.ObjectModel;
 using System.Net;
 using System.Windows.Input;
 
@@ -11,10 +10,10 @@ namespace DBracket.Net.TCP.DataSync.Example
     {
         #region "----------------------------- Private Fields ------------------------------"
         private DataSyncSource? _syncSource;
-        private DataSyncTarget? _syncTarget;
+        private TCP.DataSync.WinUI3.DataSyncTarget? _syncTarget;
 
 
-        //private Microsoft.UI.Dispatching.DispatcherQueue _dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+        private Microsoft.UI.Dispatching.DispatcherQueue _dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 
         #endregion
 
@@ -29,7 +28,7 @@ namespace DBracket.Net.TCP.DataSync.Example
                 People.Add(new Person("James", "Nobody", i, "Somewhere I belong"));
             }
 
-            //for (int i = 0; i < 100000; i++)
+            //for (int i = 0; i < 1; i++)
             //{
             //    TargetPeople.Add(new Person("", "", 0, ""));
             //}
@@ -39,7 +38,7 @@ namespace DBracket.Net.TCP.DataSync.Example
             _syncSource.ConncetionStateChanged += HandleConncetionStateChanged;
             _syncSource.CycleTimeChanged += HandleSourceCycleTimeChanged;
 
-            _syncTarget = new DataSyncTarget(IPAddress.Parse("127.0.0.1"), 4000, TargetPeople);
+            _syncTarget = new TCP.DataSync.WinUI3.DataSyncTarget(IPAddress.Parse("127.0.0.1"), 4000, TargetPeople);
             _syncTarget.CycleTimeChanged += HandleTargetCycleTimeChanged;
         }
         #endregion
@@ -54,7 +53,7 @@ namespace DBracket.Net.TCP.DataSync.Example
         #region "----------------------------- Private Methods -----------------------------"
         private void DeleteSourceTestData()
         {
-            People.Clear();
+            People.RemoveAt(0);
         }
 
         private async void StartSourceDataSync()
@@ -118,6 +117,12 @@ namespace DBracket.Net.TCP.DataSync.Example
                 People.Add(new Person("James", "Nobody", i, "Somewhere I belong"));
             }
         }
+
+
+        private void HandleDeleteDataCommand(Person person)
+        {
+            People.Remove(person);
+        }
         #endregion
         #endregion
 
@@ -125,8 +130,8 @@ namespace DBracket.Net.TCP.DataSync.Example
 
         #region "--------------------------- Public Propterties ----------------------------"
         #region "------------------------------- Properties --------------------------------"
-        public ObservableCollection<Person> People { get => _people; set { _people = value; OnMySelfChanged(); } }
-        private ObservableCollection<Person> _people = new ObservableCollection<Person>();
+        public ObservableSyncCollection<Person> People { get => _people; set { _people = value; OnMySelfChanged(); } }
+        private ObservableSyncCollection<Person> _people = new ObservableSyncCollection<Person>();
 
         public string SourceIPAddress { get => _sourceIPAddress; set { _sourceIPAddress = value; OnMySelfChanged(); } }
         private string _sourceIPAddress = "127.0.0.1";
@@ -134,7 +139,7 @@ namespace DBracket.Net.TCP.DataSync.Example
         private int _sourcePort = 4000;
 
         public int UpdateCycleTimeMs { get => _updateCycleTimeMs; set { _updateCycleTimeMs = value; OnMySelfChanged(); } }
-        private int _updateCycleTimeMs = 1000;
+        private int _updateCycleTimeMs = 130;
 
         public bool AlwaysKeepUpdating { get => _alwaysKeepUpdating; set { _alwaysKeepUpdating = value; OnMySelfChanged(); } }
         private bool _alwaysKeepUpdating = true;
@@ -150,8 +155,8 @@ namespace DBracket.Net.TCP.DataSync.Example
 
 
 
-        public ObservableCollection<Person> TargetPeople { get => _targetPeople; set { _targetPeople = value; OnMySelfChanged(); } }
-        private ObservableCollection<Person> _targetPeople = new ObservableCollection<Person>();
+        public ObservableSyncCollection<Person> TargetPeople { get => _targetPeople; set { _targetPeople = value; OnMySelfChanged(); } }
+        private ObservableSyncCollection<Person> _targetPeople = new ObservableSyncCollection<Person>();
 
         public string TargetIPAddress { get => _targetIPAddress; set { _targetIPAddress = value; OnMySelfChanged(); } }
         private string _targetIPAddress = "127.0.0.1";
@@ -168,6 +173,8 @@ namespace DBracket.Net.TCP.DataSync.Example
 
         #region "-------------------------------- Commands ---------------------------------"
         public ICommand CreateDataCommand => new RelayCommand<double>(HandleCreateDataCommand);
+        public ICommand DeleteDataCommand => new RelayCommand<Person>(HandleDeleteDataCommand);
+
         public ICommand Commands => new RelayCommand<string>(HandleCommands);
         #endregion
         #endregion

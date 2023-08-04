@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace DBracket.Net.TCP.DataSync.Example.Utilities
 {
-    internal abstract class PropertyChangedBase : INotifyPropertyChanged
+    internal abstract class PropertyChangedBase : SyncObject, INotifyPropertyChanged
     {
         #region "----------------------------- Private Fields ------------------------------"
 

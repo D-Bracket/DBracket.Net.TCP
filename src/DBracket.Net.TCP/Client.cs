@@ -137,7 +137,6 @@ namespace DBracket.Net.TCP
         {
             if (string.IsNullOrEmpty(strInputUser))
             {
-                Console.WriteLine("Empty string supplied to send.");
                 return;
             }
 
@@ -149,7 +148,6 @@ namespace DBracket.Net.TCP
                     clientStreamWriter.AutoFlush = true;
 
                     await clientStreamWriter.WriteLineAsync(strInputUser);
-                    Console.WriteLine("Data sent...");
                 }
             }
 
@@ -194,12 +192,12 @@ namespace DBracket.Net.TCP
             {
                 //MessageLogger.LogMessage("bcnc.HMI.Data.PLC", "PLCControl", LogTypes.MessageLog,
                 //    $"Start reading data from server");
-                Debug.WriteLine("Reading?");
+                //Debug.WriteLine("Reading?");
                 _clientStreamReader = new StreamReader(mClient.GetStream());
 
                 while (true)
                 {
-                    Debug.WriteLine("Client Start Listening");
+                    //Debug.WriteLine("Client Start Listening");
                     var message = _clientStreamReader.ReadLineAsync(token).Result;
 
                     if (token.IsCancellationRequested)
@@ -207,7 +205,7 @@ namespace DBracket.Net.TCP
                         Debug.WriteLine("Client listening was canceled");
                         break;
                     }
-                    Debug.WriteLine("Message recieved");
+                    //Debug.WriteLine("Message recieved");
                     message ??= string.Empty;
                     //NewMessageRecieved?.Invoke(message);
                     ReportNewMessage(message);

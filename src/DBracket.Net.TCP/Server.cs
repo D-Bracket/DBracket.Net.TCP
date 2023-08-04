@@ -169,7 +169,7 @@ namespace DBracket.Net.TCP
 
                 while (KeepRunning)
                 {
-                    Debug.WriteLine("*** Ready to read");
+                    //Debug.WriteLine("*** Ready to read");
 
                     string? receivedText = await reader.ReadLineAsync();
                     if (receivedText is null)
@@ -177,7 +177,7 @@ namespace DBracket.Net.TCP
                         receivedText = string.Empty;
                     }
 
-                    Debug.WriteLine($"Client connection: {paramClient.Connected}");
+                    //Debug.WriteLine($"Client connection: {paramClient.Connected}");
                     // Check connection to client
                     bool connected = true;
 
@@ -194,7 +194,7 @@ namespace DBracket.Net.TCP
                     //bool connected =
                     //    paramClient.Client.Poll(01,SelectMode.SelectWrite) &&
                     //    paramClient.Client.Poll(01, SelectMode.SelectRead) && !paramClient.Client.Poll(01, SelectMode.SelectError) ? true : false;
-                    Debug.WriteLine($"Determined client connection: {connected}");
+                    //Debug.WriteLine($"Determined client connection: {connected}");
 
                     if (!connected)
                     {

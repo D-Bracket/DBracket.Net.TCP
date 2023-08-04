@@ -39,7 +39,7 @@
 		<ProjectCapability Include="Msix" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\DBracket.Net.TCP.DataSync\DBracket.Net.TCP.DataSync.csproj" />
+	  <ProjectReference Include="..\DBracket.Net.TCP.DataSync.WinUI3\DBracket.Net.TCP.DataSync.WinUI3.csproj" />
 	</ItemGroup>
 
 	<!-- 
