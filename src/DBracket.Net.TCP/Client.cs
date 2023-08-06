@@ -150,7 +150,20 @@ namespace DBracket.Net.TCP
                     await clientStreamWriter.WriteLineAsync(strInputUser);
                 }
             }
+        }
 
+        public async Task SendToServer(char[] strInputUser)
+        {
+            if (_client != null)
+            {
+                if (_client.Connected)
+                {
+                    StreamWriter clientStreamWriter = new StreamWriter(_client.GetStream());
+                    clientStreamWriter.AutoFlush = true;
+
+                    await clientStreamWriter.WriteLineAsync(strInputUser);
+                }
+            }
         }
         #endregion
 

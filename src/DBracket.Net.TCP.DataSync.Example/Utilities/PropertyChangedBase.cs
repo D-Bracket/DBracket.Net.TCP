@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace DBracket.Net.TCP.DataSync.Example.Utilities
 {
-    internal abstract class PropertyChangedBase : SyncObject, INotifyPropertyChanged
+    internal abstract class PropertyChangedBase : SyncObject
     {
         #region "----------------------------- Private Fields ------------------------------"
 
@@ -19,15 +19,15 @@ namespace DBracket.Net.TCP.DataSync.Example.Utilities
 
         #region "--------------------------------- Methods ---------------------------------"
         #region "----------------------------- Public Methods ------------------------------"
-        public void OnMySelfChanged([CallerMemberName]string cmn = "")
-        {
-            OnPropertyChanged(cmn);
-        }
+        //public void OnMySelfChanged([CallerMemberName]string cmn = "")
+        //{
+        //    OnPropertyChanged(cmn);
+        //}
 
-        public void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        //public void OnPropertyChanged(string propertyName)
+        //{
+        //    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        //}
         #endregion
 
         #region "----------------------------- Private Methods -----------------------------"
@@ -47,7 +47,7 @@ namespace DBracket.Net.TCP.DataSync.Example.Utilities
         #endregion
 
         #region "--------------------------------- Events ----------------------------------"
-        public event PropertyChangedEventHandler? PropertyChanged;
+        //public new event PropertyChangedEventHandler? PropertyChanged;
         #endregion
         #endregion
     }

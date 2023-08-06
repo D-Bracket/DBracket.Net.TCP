@@ -1,26 +1,29 @@
-﻿using System.Net.Sockets;
-using System.Net;
-using System.Text;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace DBracket.Net.TCP
 {
-    public class Server
+    public class ServerClient
     {
         #region "----------------------------- Private Fields ------------------------------"
+        private ServerClientSettings _settings;
+        private TcpListener? _listener;
 
-        //private TcpListener? _listener;
-        private readonly Dictionary<string, TcpClient> _clients;
-        private readonly Dictionary<string, ServerClient> _serverClients = new();
         #endregion
 
 
 
         #region "------------------------------ Constructor --------------------------------"
-        public Server()
+        public ServerClient(ServerClientSettings settings)
         {
-            _clients = new Dictionary<string, TcpClient>();
+            _settings = settings;
         }
         #endregion
 
@@ -28,21 +31,6 @@ namespace DBracket.Net.TCP
 
         #region "--------------------------------- Methods ---------------------------------"
         #region "----------------------------- Public Methods ------------------------------"
-        public void AddClient(ServerClientSettings settings)
-        {
-            if (settings is null)
-                throw new ArgumentNullException("Settings can't be null");
-
-            // Check if EndPoint is already in use
-            var ipEndPoint = $"{settings.IPAddress}:{settings.Port}";
-            if (_serverClients.ContainsKey(ipEndPoint))
-                throw new ArgumentException("IPEndPoint already added to server");
-
-            // Add Client
-            var serverClient = new ServerClient();
-            _serverClients.Add(ipEndPoint, serverClient);
-        }
-
         public async void StartListeningForIncomingConnection(string clientName, IPAddress ipAddress, int port)
         {
             if (ipAddress is null)
@@ -98,78 +86,7 @@ namespace DBracket.Net.TCP
             }
         }
 
-        public void StopServer()
-        {
-            try
-            {
-                if (_listener is not null)
-                {
-                    _listener.Stop();
-                }
-
-                foreach (var c in _clients)
-                {
-                    c.Value.Close();
-                }
-
-                _clients.Clear();
-            }
-            catch (Exception excp)
-            {
-                Debug.WriteLine(excp.ToString());
-            }
-        }
-
-        public async void SendToClient(string clientName, string leMessage)
-        {
-            if (string.IsNullOrEmpty(leMessage))
-            {
-                return;
-            }
-
-            byte[] buffMessage = Encoding.ASCII.GetBytes(leMessage);
-            var client = _clients[clientName];
-
-            if (client is null)
-            {
-                throw new Exception("Client not connected");
-            }
-
-            Debug.WriteLine("Sending to client");
-            StreamWriter clientStreamWriter = new StreamWriter(client.GetStream());
-            clientStreamWriter.AutoFlush = true;
-
-            await clientStreamWriter.WriteLineAsync(leMessage);
-        }
-
-        public async void SendToAll(string leMessage)
-        {
-            if (string.IsNullOrEmpty(leMessage))
-            {
-                return;
-            }
-
-            try
-            {
-                foreach (var c in _clients)
-                {
-                    StreamWriter clientStreamWriter = new StreamWriter(c.Value.GetStream());
-                    await clientStreamWriter.WriteLineAsync(leMessage);
-                }
-
-                //byte[] buffMessage = Encoding.ASCII.GetBytes(leMessage);
-
-                //foreach (var c in _clients)
-                //{
-                //    await c.Value.GetStream().WriteAsync(buffMessage, 0, buffMessage.Length);
-                //}
-            }
-            catch (Exception excp)
-            {
-                Debug.WriteLine(excp.ToString());
-            }
-
-        }
+        //public void StopListeningForClient() { }
         #endregion
 
         #region "----------------------------- Private Methods -----------------------------"
@@ -242,14 +159,6 @@ namespace DBracket.Net.TCP
             return sb.ToString();
         }
 
-        private void RemoveClient(string clientName)
-        {
-            if (_clients.ContainsKey(clientName))
-            {
-                _clients.Remove(clientName);
-                Debug.WriteLine(String.Format("Client removed, count: {0}", _clients.Count));
-            }
-        }
 
         private void CheckConnectionState(string clientName, TcpClient client)
         {
@@ -286,7 +195,7 @@ namespace DBracket.Net.TCP
                         }
                     }
                 }
-                catch 
+                catch
                 {
                 }
 
@@ -304,15 +213,11 @@ namespace DBracket.Net.TCP
 
         #region "--------------------------- Public Propterties ----------------------------"
         #region "------------------------------- Properties --------------------------------"
-        public bool KeepRunning { get; set; }
+
         #endregion
 
         #region "--------------------------------- Events ----------------------------------"
-        public event ClientConnectionChangedHandler? ClientConnectionChanged;
-        public delegate void ClientConnectionChangedHandler(string clientName, bool newState);
 
-        public event HandleMessageRecieved? NewMessageRecieved;
-        public delegate void HandleMessageRecieved(string clientName, string message);
         #endregion
         #endregion
     }

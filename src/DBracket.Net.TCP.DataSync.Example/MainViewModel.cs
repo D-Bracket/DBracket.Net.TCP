@@ -1,6 +1,7 @@
 ﻿using DBracket.Net.TCP.DataSync.Example.Models;
 using DBracket.Net.TCP.DataSync.Example.Utilities;
 using System;
+using System.Linq;
 using System.Net;
 using System.Windows.Input;
 
@@ -40,6 +41,8 @@ namespace DBracket.Net.TCP.DataSync.Example
 
             _syncTarget = new TCP.DataSync.WinUI3.DataSyncTarget(IPAddress.Parse("127.0.0.1"), 4000, TargetPeople);
             _syncTarget.CycleTimeChanged += HandleTargetCycleTimeChanged;
+
+            People.First().Name = "Wow";
         }
         #endregion
 
@@ -130,40 +133,40 @@ namespace DBracket.Net.TCP.DataSync.Example
 
         #region "--------------------------- Public Propterties ----------------------------"
         #region "------------------------------- Properties --------------------------------"
-        public ObservableSyncCollection<Person> People { get => _people; set { _people = value; OnMySelfChanged(); } }
+        public ObservableSyncCollection<Person> People { get => _people; set { _people = value; OnMySelfChanged(string.Empty); } }
         private ObservableSyncCollection<Person> _people = new ObservableSyncCollection<Person>();
 
-        public string SourceIPAddress { get => _sourceIPAddress; set { _sourceIPAddress = value; OnMySelfChanged(); } }
+        public string SourceIPAddress { get => _sourceIPAddress; set { _sourceIPAddress = value; OnMySelfChanged(value.ToString()); } }
         private string _sourceIPAddress = "127.0.0.1";
-        public int SourcePort { get => _sourcePort; set { _sourcePort = value; OnMySelfChanged(); } }
+        public int SourcePort { get => _sourcePort; set { _sourcePort = value; OnMySelfChanged(value.ToString()); } }
         private int _sourcePort = 4000;
 
-        public int UpdateCycleTimeMs { get => _updateCycleTimeMs; set { _updateCycleTimeMs = value; OnMySelfChanged(); } }
+        public int UpdateCycleTimeMs { get => _updateCycleTimeMs; set { _updateCycleTimeMs = value; OnMySelfChanged(value.ToString()); } }
         private int _updateCycleTimeMs = 130;
 
-        public bool AlwaysKeepUpdating { get => _alwaysKeepUpdating; set { _alwaysKeepUpdating = value; OnMySelfChanged(); } }
+        public bool AlwaysKeepUpdating { get => _alwaysKeepUpdating; set { _alwaysKeepUpdating = value; OnMySelfChanged(value.ToString()); } }
         private bool _alwaysKeepUpdating = true;
 
-        public bool SourceIsConnectedToTarget { get => _sourceIsConnectedToTarget; set { _sourceIsConnectedToTarget = value; OnMySelfChanged(); } }
+        public bool SourceIsConnectedToTarget { get => _sourceIsConnectedToTarget; set { _sourceIsConnectedToTarget = value; OnMySelfChanged(value.ToString()); } }
         private bool _sourceIsConnectedToTarget = false;
 
-        public int SourceTargetCycleTime { get => _sourceTargetCycleTime; set { _sourceTargetCycleTime = value; OnMySelfChanged(); } }
+        public int SourceTargetCycleTime { get => _sourceTargetCycleTime; set { _sourceTargetCycleTime = value; OnMySelfChanged(value.ToString()); } }
         private int _sourceTargetCycleTime = 0;
 
-        public string SourceCycleTime { get => _sourceCycleTime; set { _sourceCycleTime = value; OnMySelfChanged(); } }
+        public string SourceCycleTime { get => _sourceCycleTime; set { _sourceCycleTime = value; OnMySelfChanged(value.ToString()); } }
         private string _sourceCycleTime;
 
 
 
-        public ObservableSyncCollection<Person> TargetPeople { get => _targetPeople; set { _targetPeople = value; OnMySelfChanged(); } }
+        public ObservableSyncCollection<Person> TargetPeople { get => _targetPeople; set { _targetPeople = value; OnMySelfChanged(string.Empty); } }
         private ObservableSyncCollection<Person> _targetPeople = new ObservableSyncCollection<Person>();
 
-        public string TargetIPAddress { get => _targetIPAddress; set { _targetIPAddress = value; OnMySelfChanged(); } }
+        public string TargetIPAddress { get => _targetIPAddress; set { _targetIPAddress = value; OnMySelfChanged(value.ToString()); } }
         private string _targetIPAddress = "127.0.0.1";
-        public string TargetPort { get => _targetPort; set { _targetPort = value; OnMySelfChanged(); } }
+        public string TargetPort { get => _targetPort; set { _targetPort = value; OnMySelfChanged(value.ToString()); } }
         private string _targetPort = "4000";
 
-        public string TargetCycleTime { get => _targetCycleTime; set { _targetCycleTime = value; OnMySelfChanged(); } }
+        public string TargetCycleTime { get => _targetCycleTime; set { _targetCycleTime = value; OnMySelfChanged(value.ToString()); } }
         private string _targetCycleTime;
         #endregion
 

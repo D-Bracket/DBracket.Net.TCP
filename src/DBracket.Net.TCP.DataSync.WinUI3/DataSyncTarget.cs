@@ -46,41 +46,41 @@ namespace DBracket.Net.TCP.DataSync.WinUI3
                 //ulong i = 1;
                 //int y = 1;
 
-                if (_syncObjectIndex?.Count > 0)
-                {
-                    Parallel.For((int)_syncObjectIndex.First().Key, (int)_syncObjectIndex.Last().Key, currentObjectNumber =>
-                    {
-                        try
-                        {
-                            var i = (ulong)currentObjectNumber;
-                            if (_syncObjectToRemoveIndex.ContainsKey(i))
-                                return;
+                //if (_syncObjectIndex?.Count > 0)
+                //{
+                //    Parallel.For((int)_syncObjectIndex.First().Key, (int)_syncObjectIndex.Last().Key, currentObjectNumber =>
+                //    {
+                //        try
+                //        {
+                //            var i = (ulong)currentObjectNumber;
+                //            if (_syncObjectToRemoveIndex.ContainsKey(i))
+                //                return;
 
-                            var syncObject = _syncObjectIndex[i];
-                            if (syncObject.NeedsToBeDeleted)
-                            {
-                                _syncObjectToRemoveIndex.TryAdd(i, syncObject);
+                //            var syncObject = _syncObjectIndex[i];
+                //            if (syncObject.NeedsToBeDeleted)
+                //            {
+                //                _syncObjectToRemoveIndex.TryAdd(i, syncObject);
 
-                            }
-                            else
-                            {
-                                syncObject.NeedsToBeDeleted = true;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                        }
-                    });
+                //            }
+                //            else
+                //            {
+                //                syncObject.NeedsToBeDeleted = true;
+                //            }
+                //        }
+                //        catch (Exception ex)
+                //        {
+                //        }
+                //    });
 
-                    foreach (var syncObject in _syncObjectToRemoveIndex)
-                    {
-                        var item = syncObject.Value;
-                        var key = ulong.Parse(item.ID);
-                        _syncObjectList.Remove(item);
-                        _syncObjectIndex.Remove(key, out item);
-                    }
-                    _syncObjectToRemoveIndex.Clear();
-                }
+                //    foreach (var syncObject in _syncObjectToRemoveIndex)
+                //    {
+                //        var item = syncObject.Value;
+                //        var key = ulong.Parse(item.ID);
+                //        _syncObjectList.Remove(item);
+                //        _syncObjectIndex.Remove(key, out item);
+                //    }
+                //    _syncObjectToRemoveIndex.Clear();
+                //}
 
 
                 // Add objects to list

@@ -13,7 +13,7 @@ namespace DBracket.Net.TCP.DataSync
 
         private static Stopwatch _sw = Stopwatch.StartNew();
         private static Stopwatch _swCycle = Stopwatch.StartNew();
-        private static List<PropertyInfo> _propInfos = new List<PropertyInfo>();
+        private static PropertyInfo[] _propInfos;
 
         protected IList _syncObjectList;
         private Type _listItemType;
@@ -45,16 +45,7 @@ namespace DBracket.Net.TCP.DataSync
 
             // Get object infos
             _listItemType = _syncObjectList.GetType().GenericTypeArguments[0];
-            var props = _listItemType.GetProperties();
-            foreach (var prop in props)
-            {
-                var attribute = prop.GetCustomAttribute<SyncPropertyAttribute>();
-                if (attribute is not null)
-                {
-                    _propInfos.Add(prop);
-                    continue;
-                }
-            }
+            _propInfos = _listItemType.GetProperties().Where(x => x.GetCustomAttribute<SyncPropertyAttribute>() is not null).ToArray();
 
             // Init Server
             _server = new Server();
@@ -95,7 +86,119 @@ namespace DBracket.Net.TCP.DataSync
 
 
                 // Recieve and convert the data back
-                var objectPropValues = newData.Split(DataSyncSource.SEPERATOR);
+                var objectPropValues = newData.Split(DataSyncSource.OBJECT_SEPERATOR);
+
+                //for (int currentObjectNumber = 0; currentObjectNumber < objectPropValues.Length; currentObjectNumber++)
+                //{
+                //    try
+                //    {
+                //        // Get object parameters
+                //        var syncObjects = objectPropValues[currentObjectNumber].Split(DataSyncSource.ID_SEPERATOR);
+                //        var id = ulong.Parse(syncObjects[0]);
+                //        var values = syncObjects[1].Split(DataSyncSource.VALUE_SEPERATOR);
+                //        SyncObject syncObject = null;
+
+
+                //        // Check if object exists
+                //        if (!_syncObjectIndex.ContainsKey(id))
+                //        {
+                //            // Object doesn't exist and needs to be created
+                //            syncObject = (SyncObject)Activator.CreateInstance(_listItemType);
+                //            syncObject.InitObject(id, _propInfos);
+                //            _syncObjectToAddIndex.TryAdd(id, syncObject);
+                //        }
+                //        else
+                //        {
+                //            // Object exitsts and needs to be updated
+                //            syncObject = _syncObjectIndex[id];
+                //            syncObject.NeedsToBeDeleted = false;
+                //        }
+
+
+                //        //// Update values
+                //        //for (int propNumber = 0; propNumber < _propInfos.Length; propNumber++)
+                //        //{
+                //        //    var currentValue = _propInfos[propNumber].GetValue(syncObject)?.ToString();
+                //        //    if (currentValue == values[propNumber])
+                //        //    {
+                //        //        continue;
+                //        //    }
+
+                //        //    if (_propInfos[propNumber].PropertyType == typeof(string))
+                //        //    {
+                //        //        _propInfos[propNumber].SetValue(syncObject, values[propNumber]);
+                //        //    }
+                //        //    else if (_propInfos[propNumber].PropertyType == typeof(sbyte))
+                //        //    {
+                //        //        var convertedValue = Convert.ToSByte(values[propNumber]);
+                //        //        _propInfos[propNumber].SetValue(syncObject, convertedValue);
+                //        //    }
+                //        //    else if (_propInfos[propNumber].PropertyType == typeof(byte))
+                //        //    {
+                //        //        var convertedValue = Convert.ToByte(values[propNumber]);
+                //        //        _propInfos[propNumber].SetValue(syncObject, convertedValue);
+                //        //    }
+                //        //    else if (_propInfos[propNumber].PropertyType == typeof(short))
+                //        //    {
+                //        //        var convertedValue = Convert.ToInt16(values[propNumber]);
+                //        //        _propInfos[propNumber].SetValue(syncObject, convertedValue);
+                //        //    }
+                //        //    else if (_propInfos[propNumber].PropertyType == typeof(ushort))
+                //        //    {
+                //        //        var convertedValue = Convert.ToUInt16(values[propNumber]);
+                //        //        _propInfos[propNumber].SetValue(syncObject, convertedValue);
+                //        //    }
+                //        //    else if (_propInfos[propNumber].PropertyType == typeof(int))
+                //        //    {
+                //        //        var convertedValue = Convert.ToInt32(values[propNumber]);
+                //        //        _propInfos[propNumber].SetValue(syncObject, convertedValue);
+                //        //    }
+                //        //    else if (_propInfos[propNumber].PropertyType == typeof(uint))
+                //        //    {
+                //        //        var convertedValue = Convert.ToUInt32(values[propNumber]);
+                //        //        _propInfos[propNumber].SetValue(syncObject, convertedValue);
+                //        //    }
+                //        //    else if (_propInfos[propNumber].PropertyType == typeof(long))
+                //        //    {
+                //        //        var convertedValue = Convert.ToInt64(values[propNumber]);
+                //        //        _propInfos[propNumber].SetValue(syncObject, convertedValue);
+                //        //    }
+                //        //    else if (_propInfos[propNumber].PropertyType == typeof(ulong))
+                //        //    {
+                //        //        var convertedValue = Convert.ToUInt64(values[propNumber]);
+                //        //        _propInfos[propNumber].SetValue(syncObject, convertedValue);
+                //        //    }
+                //        //    else if (_propInfos[propNumber].PropertyType == typeof(double))
+                //        //    {
+                //        //        var convertedValue = Convert.ToDouble(values[propNumber]);
+                //        //        _propInfos[propNumber].SetValue(syncObject, convertedValue);
+                //        //    }
+                //        //    else if (_propInfos[propNumber].PropertyType == typeof(bool))
+                //        //    {
+                //        //        var convertedValue = Convert.ToBoolean(values[propNumber]);
+                //        //        _propInfos[propNumber].SetValue(syncObject, convertedValue);
+                //        //    }
+                //        //}
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        Console.WriteLine(ex.Message);
+                //    }
+                //}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
                 Parallel.For(0, objectPropValues.Length, currentObjectNumber =>
@@ -103,9 +206,9 @@ namespace DBracket.Net.TCP.DataSync
                     try
                     {
                         // Get object parameters
-                        var syncObjects = objectPropValues[currentObjectNumber].Split(DataSyncSource.IDSEPERATOR);
+                        var syncObjects = objectPropValues[currentObjectNumber].Split(DataSyncSource.ID_SEPERATOR);
                         var id = ulong.Parse(syncObjects[0]);
-                        var values = syncObjects[1].Split(",");
+                        var values = syncObjects[1].Split(DataSyncSource.VALUE_SEPERATOR);
                         SyncObject syncObject = null;
 
 
@@ -114,7 +217,7 @@ namespace DBracket.Net.TCP.DataSync
                         {
                             // Object doesn't exist and needs to be created
                             syncObject = (SyncObject)Activator.CreateInstance(_listItemType);
-                            syncObject.SetIdentifier(id);
+                            syncObject.InitObject(id, _propInfos);
                             _syncObjectToAddIndex.TryAdd(id, syncObject);
                         }
                         else
@@ -126,7 +229,7 @@ namespace DBracket.Net.TCP.DataSync
 
 
                         // Update values
-                        for (int propNumber = 0; propNumber < _propInfos.Count; propNumber++)
+                        for (int propNumber = 0; propNumber < _propInfos.Length; propNumber++)
                         {
                             var currentValue = _propInfos[propNumber].GetValue(syncObject)?.ToString();
                             if (currentValue == values[propNumber])
@@ -218,10 +321,10 @@ namespace DBracket.Net.TCP.DataSync
         {
             _dataWriteActive = false;
             //Debug.WriteLine($"Data recieved");
-            while (_dataReadActive) ;
+            while (_dataReadActive) { Task.Delay(10).Wait(); }
 
             _dataWriteActive = true;
-            _newData = message;
+            //_newData = message;
             _dataWriteActive = false;
         }
         #endregion
