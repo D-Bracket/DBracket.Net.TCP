@@ -9,9 +9,7 @@ namespace DBracket.Net.TCP
     public class Server
     {
         #region "----------------------------- Private Fields ------------------------------"
-
         //private TcpListener? _listener;
-        private readonly Dictionary<string, TcpClient> _clients;
         private readonly Dictionary<string, ServerClient> _serverClients = new();
         #endregion
 
@@ -39,74 +37,69 @@ namespace DBracket.Net.TCP
                 throw new ArgumentException("IPEndPoint already added to server");
 
             // Add Client
-            var serverClient = new ServerClient();
+            var serverClient = new ServerClient(settings);
             _serverClients.Add(ipEndPoint, serverClient);
         }
 
-        public async void StartListeningForIncomingConnection(string clientName, IPAddress ipAddress, int port)
-        {
-            if (ipAddress is null)
-            {
-                throw new ArgumentException("No IP Address selected. To accept any IP parse in the argument IPAddress.Any");
-            }
+//        public async void StartListeningForIncomingConnection(string clientName, IPAddress ipAddress, int port)
+//        {
+//            if (ipAddress is null)
+//            {
+//                throw new ArgumentException("No IP Address selected. To accept any IP parse in the argument IPAddress.Any");
+//            }
 
-            if (port <= 0)
-            {
-                return;
-            }
+//            if (port <= 0)
+//            {
+//                return;
+//            }
 
-            //_ipAddress = ipAddress;
-            //_port = port;
+//            //_ipAddress = ipAddress;
+//            //_port = port;
 
-            Debug.WriteLine(string.Format("IP Address: {0} - Port: {1}", ipAddress.ToString(), port));
+//            Debug.WriteLine(string.Format("IP Address: {0} - Port: {1}", ipAddress.ToString(), port));
 
-            _listener = new TcpListener(ipAddress, port);
+//            _listener = new TcpListener(ipAddress, port);
 
-            try
-            {
-                _listener.Start();
-                KeepRunning = true;
+//            try
+//            {
+//                _listener.Start();
+//                KeepRunning = true;
 
-                while (KeepRunning)
-                {
-                    Debug.WriteLine("Start Listening again");
-                    var returnedByAccept = await _listener.AcceptTcpClientAsync();
+//                while (KeepRunning)
+//                {
+//                    Debug.WriteLine("Start Listening again");
+//                    var returnedByAccept = await _listener.AcceptTcpClientAsync();
 
-                    if (_clients.ContainsKey(clientName))
-                    {
-                        _clients[clientName] = returnedByAccept;
-                    }
-                    else
-                    {
-                        _clients.Add(clientName, returnedByAccept);
-                    }
+//                    if (_clients.ContainsKey(clientName))
+//                    {
+//                        _clients[clientName] = returnedByAccept;
+//                    }
+//                    else
+//                    {
+//                        _clients.Add(clientName, returnedByAccept);
+//                    }
 
-#pragma warning disable CS4014
-                    Task.Run(() => CheckConnectionState(clientName, returnedByAccept));
-#pragma warning restore CS4014
-                    TakeCareOfTCPClient(clientName, returnedByAccept);
-                    ClientConnectionChanged?.Invoke(clientName, true);
+//#pragma warning disable CS4014
+//                    Task.Run(() => CheckConnectionState(clientName, returnedByAccept));
+//#pragma warning restore CS4014
+//                    TakeCareOfTCPClient(clientName, returnedByAccept);
+//                    ClientConnectionChanged?.Invoke(clientName, true);
 
-                    Debug.WriteLine(
-                        string.Format("Client connected successfully, count: {0} - {1}",
-                        _clients.Count, returnedByAccept.Client.RemoteEndPoint));
-                }
-            }
-            catch (Exception excp)
-            {
-                System.Diagnostics.Debug.WriteLine(excp.ToString());
-            }
-        }
+//                    Debug.WriteLine(
+//                        string.Format("Client connected successfully, count: {0} - {1}",
+//                        _clients.Count, returnedByAccept.Client.RemoteEndPoint));
+//                }
+//            }
+//            catch (Exception excp)
+//            {
+//                System.Diagnostics.Debug.WriteLine(excp.ToString());
+//            }
+//        }
 
         public void StopServer()
         {
             try
             {
-                if (_listener is not null)
-                {
-                    _listener.Stop();
-                }
-
                 foreach (var c in _clients)
                 {
                     c.Value.Close();
@@ -173,74 +166,74 @@ namespace DBracket.Net.TCP
         #endregion
 
         #region "----------------------------- Private Methods -----------------------------"
-        private async void TakeCareOfTCPClient(string clientName, TcpClient paramClient)
-        {
-            try
-            {
-                NetworkStream stream = paramClient.GetStream();
-                StreamReader reader = new StreamReader(stream);
-                string? receivedText = string.Empty;
-                //Span<char> buffer = new char[2077783];
-                //Memory<char> buffer = new Memory<char>();
+        //private async void TakeCareOfTCPClient(string clientName, TcpClient paramClient)
+        //{
+        //    try
+        //    {
+        //        NetworkStream stream = paramClient.GetStream();
+        //        StreamReader reader = new StreamReader(stream);
+        //        string? receivedText = string.Empty;
+        //        //Span<char> buffer = new char[2077783];
+        //        //Memory<char> buffer = new Memory<char>();
 
-                while (KeepRunning)
-                {
-                    //Task.Delay(10).Wait();
-                    _ = await reader.ReadLineAsync();
-                    //_ = reader.Read(buffer);
-                    ////_ = reader.Read();
-                    ////_ = await reader.ReadAsync(buffer);
+        //        while (KeepRunning)
+        //        {
+        //            //Task.Delay(10).Wait();
+        //            _ = await reader.ReadLineAsync();
+        //            //_ = reader.Read(buffer);
+        //            ////_ = reader.Read();
+        //            ////_ = await reader.ReadAsync(buffer);
 
-                    //if (buffer.Length != 0)
-                    //{
+        //            //if (buffer.Length != 0)
+        //            //{
 
-                    //}
-                    //if (receivedText is null)
-                    //{
-                    //    receivedText = string.Empty;
-                    //}
+        //            //}
+        //            //if (receivedText is null)
+        //            //{
+        //            //    receivedText = string.Empty;
+        //            //}
 
-                    //Check connection to client
-                    bool connected = true;
-                    if (paramClient.Client.Poll(0, SelectMode.SelectRead))
-                    {
-                        byte[] buff = new byte[1];
-                        if (paramClient.Client.Receive(buff, SocketFlags.Peek) == 0)
-                        {
-                            // Client disconnected
-                            connected = false;
-                        }
-                    }
+        //            //Check connection to client
+        //            bool connected = true;
+        //            if (paramClient.Client.Poll(0, SelectMode.SelectRead))
+        //            {
+        //                byte[] buff = new byte[1];
+        //                if (paramClient.Client.Receive(buff, SocketFlags.Peek) == 0)
+        //                {
+        //                    // Client disconnected
+        //                    connected = false;
+        //                }
+        //            }
 
-                    if (!connected)
-                    {
-                        paramClient.Close();
-                        break;
-                    }
-                    //NewMessageRecieved?.Invoke(clientName, receivedText);
-                }
-            }
-            catch (Exception excp)
-            {
-                RemoveClient(clientName);
-                System.Diagnostics.Debug.WriteLine(excp.ToString());
-            }
+        //            if (!connected)
+        //            {
+        //                paramClient.Close();
+        //                break;
+        //            }
+        //            //NewMessageRecieved?.Invoke(clientName, receivedText);
+        //        }
+        //    }
+        //    catch (Exception excp)
+        //    {
+        //        RemoveClient(clientName);
+        //        System.Diagnostics.Debug.WriteLine(excp.ToString());
+        //    }
 
-        }
+        //}
 
-        public virtual String ReadToEnd(StreamReader reader)
-        {
-            Contract.Ensures(Contract.Result<String>() != null);
+        //public virtual String ReadToEnd(StreamReader reader)
+        //{
+        //    Contract.Ensures(Contract.Result<String>() != null);
 
-            char[] chars = new char[4096];
-            int len;
-            StringBuilder sb = new StringBuilder(4096);
-            while ((len = reader.Read(chars, 0, chars.Length)) != 0)
-            {
-                sb.Append(chars, 0, len);
-            }
-            return sb.ToString();
-        }
+        //    char[] chars = new char[4096];
+        //    int len;
+        //    StringBuilder sb = new StringBuilder(4096);
+        //    while ((len = reader.Read(chars, 0, chars.Length)) != 0)
+        //    {
+        //        sb.Append(chars, 0, len);
+        //    }
+        //    return sb.ToString();
+        //}
 
         private void RemoveClient(string clientName)
         {
@@ -251,48 +244,48 @@ namespace DBracket.Net.TCP
             }
         }
 
-        private void CheckConnectionState(string clientName, TcpClient client)
-        {
-            while (true)
-            {
-                if (client is null)
-                {
-                    break;
-                }
+        //private void CheckConnectionState(string clientName, TcpClient client)
+        //{
+        //    while (true)
+        //    {
+        //        if (client is null)
+        //        {
+        //            break;
+        //        }
 
-                try
-                {
-                    if (!client.Connected)
-                    {
-                        // Client disconnected
-                        Task.Run(() => ClientConnectionChanged?.Invoke(clientName, false));
-                        break;
-                    }
-                    else if (client.Client is null)
-                    {
-                        // Client disconnected
-                        Task.Run(() => ClientConnectionChanged?.Invoke(clientName, false));
-                        break;
-                    }
+        //        try
+        //        {
+        //            if (!client.Connected)
+        //            {
+        //                // Client disconnected
+        //                Task.Run(() => ClientConnectionChanged?.Invoke(clientName, false));
+        //                break;
+        //            }
+        //            else if (client.Client is null)
+        //            {
+        //                // Client disconnected
+        //                Task.Run(() => ClientConnectionChanged?.Invoke(clientName, false));
+        //                break;
+        //            }
 
-                    if (client.Client is not null && client.Client.Poll(0, SelectMode.SelectRead))
-                    {
-                        byte[] buff = new byte[1];
-                        if (client.Client?.Receive(buff, SocketFlags.Peek) == 0)
-                        {
-                            // Client disconnected
-                            Task.Run(() => ClientConnectionChanged?.Invoke(clientName, false));
-                            break;
-                        }
-                    }
-                }
-                catch 
-                {
-                }
+        //            if (client.Client is not null && client.Client.Poll(0, SelectMode.SelectRead))
+        //            {
+        //                byte[] buff = new byte[1];
+        //                if (client.Client?.Receive(buff, SocketFlags.Peek) == 0)
+        //                {
+        //                    // Client disconnected
+        //                    Task.Run(() => ClientConnectionChanged?.Invoke(clientName, false));
+        //                    break;
+        //                }
+        //            }
+        //        }
+        //        catch 
+        //        {
+        //        }
 
-                Task.Delay(10).Wait();
-            }
-        }
+        //        Task.Delay(10).Wait();
+        //    }
+        //}
         #endregion
 
         #region "------------------------------ Event Handling -----------------------------"
@@ -304,6 +297,9 @@ namespace DBracket.Net.TCP
 
         #region "--------------------------- Public Propterties ----------------------------"
         #region "------------------------------- Properties --------------------------------"
+        public Dictionary<string, TcpClient> Clients { get => _clients; }
+        private readonly Dictionary<string, TcpClient> _clients;
+
         public bool KeepRunning { get; set; }
         #endregion
 

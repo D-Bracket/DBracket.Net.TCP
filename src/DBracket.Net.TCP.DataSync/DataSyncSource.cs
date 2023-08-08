@@ -5,16 +5,14 @@ using System.Reflection;
 
 namespace DBracket.Net.TCP.DataSync
 {
-
-    // strings in SyncObject of properties with complete length, updates when properties update
-    // int array with starting point in message
-    // pointer that parallel write chars in char buffer
-
-
-
-
     public class DataSyncSource
     {
+        // Add length to message
+        // Only resize Buffer if to small
+
+        // Set buffer zero after every cycle
+        // Send Span of Buffer, with zeros cut off
+
         #region "----------------------------- Private Fields ------------------------------"C
         internal static string OBJECT_SEPERATOR = $"|;";
         internal static string ID_SEPERATOR = $";_";
@@ -86,267 +84,204 @@ namespace DBracket.Net.TCP.DataSync
             uint syncMessageLength = 0;
             char[] syncMessage = null;
 
-            while (_syncDataActive)
+            try
             {
-                // If there is nothing to sync, do nothing
-                if (_syncObjectList is null || _syncObjectList?.Count == 0)
-                {
-                    Task.Delay(100).Wait();
-                    continue;
-                }
 
-                // Wait until the current List updates are done
-                while (_syncObjectList.IsUpdating)
+                while (_syncDataActive)
                 {
-                    if (!_syncDataActive)
+                    // If there is nothing to sync, do nothing
+                    if (_syncObjectList is null || _syncObjectList?.Count == 0)
                     {
-                        return;
-                    }
-                    Task.Delay(10).Wait();
-                }
-
-                // Start new Cycle
-                _syncObjectList.IsSourceUpdating = true;
-                _sw.Restart();
-                _swCycle.Restart();
-
-
-                // Calculate the length of the message
-                syncMessageLength = 0;
-                foreach (SyncObject syncObject in _syncObjectList)
-                {
-                    syncMessageLength += syncObject._syncMessageLength;
-                }
-
-                // Init message array
-                if (syncMessage is null || syncMessageLength != syncMessage?.Length)
-                {
-                    syncMessage = new char[syncMessageLength];
-                }
-
-                uint length = 0;
-                for (int syncObjectNumber = 0; syncObjectNumber < _syncObjectList.Count; syncObjectNumber++)
-                {
-                    var syncObject = (SyncObject)_syncObjectList[syncObjectNumber];
-                    Test(syncObjectNumber, syncObject, length);
-                    length += syncObject._syncMessageLength;
-                }
-                //foreach (SyncObject syncObject in _syncObjectList)
-                //{
-                //    Test(syncObject, length);
-                //    length += syncObject._syncMessageLength;
-                //}
-
-                //var t = new string(syncMessage);
-                //var tmp2 = 0;
-
-                Debug.WriteLine($"time to process data: {_swCycle.Elapsed}");
-
-
-                // Send data
-                if (_client.IsConnected)
-                {
-                    _client.SendToServer(syncMessage).Wait();
-                }
-
-                Debug.WriteLine($"time to process and send data: {_swCycle.Elapsed}");
-                while (_swCycle.ElapsedMilliseconds < _settings.UpdateCycleTimeMs)
-                {
-                    var waitMs = _settings.UpdateCycleTimeMs - (int)_swCycle.ElapsedMilliseconds;
-                    Task.Delay(waitMs).Wait();
-                }
-
-                CycleTime = _sw.Elapsed;
-                Task.Run(() => CycleTimeChanged?.Invoke(CycleTime));
-                Debug.WriteLine($"Complete cycle time: {_sw.Elapsed}");
-
-
-                unsafe void Test(int syncObjectNumber, SyncObject syncObject, uint startPoint)
-                {
-                    if (syncObject.ID == "102")
-                    {
-
+                        Task.Delay(100).Wait();
+                        continue;
                     }
 
-                    var bufferPtrOffset = startPoint;
-                    fixed (char* buffer = syncMessage)
+                    // Wait until the current List updates are done
+                    while (_syncObjectList.IsUpdating)
                     {
-                        #region Add the id
-                        fixed (char* idPtr = syncObject.ID)
+                        if (!_syncDataActive)
                         {
-                            for (int i = 0; i < syncObject.ID.Length; i++)
-                            {
-                                *(buffer + bufferPtrOffset) = *(idPtr + i);
-                                bufferPtrOffset++;
-                            }
+                            return;
                         }
-                        fixed (char* idSeperatorPtr = ID_SEPERATOR)
-                        {
-                            for (int i = 0; i < ID_SEPERATOR.Length; i++)
-                            {
-                                *(buffer + bufferPtrOffset) = *(idSeperatorPtr + i);
-                                bufferPtrOffset++;
-                            }
-                        }
-                        #endregion
+                        Task.Delay(10).Wait();
+                    }
+
+                    // Start new Cycle
+                    _syncObjectList.IsSourceUpdating = true;
+                    _sw.Restart();
+                    _swCycle.Restart();
 
 
-                        #region Add Property values
-                        for (int y = 0; y < syncObject._syncPropertyValues.Length; y++)
+                    // Calculate the length of the message
+                    syncMessageLength = 0;
+                    foreach (SyncObject syncObject in _syncObjectList)
+                    {
+                        syncMessageLength += syncObject._syncMessageLength;
+                    }
+
+                    // Init message array
+                    if (syncMessage is null || (syncMessageLength + 12) > syncMessage?.Length)
+                    {
+                        syncMessage = new char[syncMessageLength + 12];
+                    }
+
+                    uint currentPosition = 12;
+                    for (int syncObjectNumber = 0; syncObjectNumber < _syncObjectList.Count; syncObjectNumber++)
+                    {
+                        var syncObject = (SyncObject)_syncObjectList[syncObjectNumber];
+                        AddSyncObjectToMessage(syncObjectNumber, syncObject, currentPosition);
+                        currentPosition += syncObject._syncMessageLength;
+                    }
+
+                    AddMessageLengthToMessage((uint)(syncMessage.Length - 34 + 2));
+                    AddMessageEndSymbol();
+
+
+                    //var t = new string(syncMessage);
+                    //var tmp2 = 0;
+
+                    Debug.WriteLine($"time to process data: {_swCycle.Elapsed}");
+
+
+                    // Send data
+                    if (_client.IsConnected)
+                    {
+                        try
                         {
-                            fixed (char* syncPropertyValuePtr = syncObject._syncPropertyValues[y])
+                            //char[] test2 = new char[20];
+                            //var y = 0;
+                            //for (int i = syncMessage.Length-20; i < syncMessage.Length; i++)
+                            //{
+                            //    test2[y++] = syncMessage[i];
+                            //}
+                            var t = syncMessage[syncMessage.Length - 1];
+                            var t2= syncMessage[syncMessage.Length - 2];
+
+                            _client.SendToServer(syncMessage).Wait();
+                        }
+                        catch (Exception ex)
+                        {
+
+                        }
+                    }
+
+                    Debug.WriteLine($"time to process and send data: {_swCycle.Elapsed}");
+                    while (_swCycle.ElapsedMilliseconds < _settings.UpdateCycleTimeMs)
+                    {
+                        var waitMs = _settings.UpdateCycleTimeMs - (int)_swCycle.ElapsedMilliseconds;
+                        Task.Delay(waitMs).Wait();
+                    }
+
+                    CycleTime = _sw.Elapsed;
+                    Task.Run(() => CycleTimeChanged?.Invoke(CycleTime));
+                    Debug.WriteLine($"Complete cycle time: {_sw.Elapsed}");
+
+
+                    unsafe void AddSyncObjectToMessage(int syncObjectNumber, SyncObject syncObject, uint startPoint)
+                    {
+                        var bufferPtrOffset = startPoint;
+                        fixed (char* buffer = syncMessage)
+                        {
+                            #region Add the id
+                            fixed (char* idPtr = syncObject.ID)
                             {
-                                // Add the Value
-                                for (int i = 0; i < syncObject._syncPropertyValues[y].Length; i++)
+                                for (int i = 0; i < syncObject.ID.Length; i++)
                                 {
-                                    *(buffer + bufferPtrOffset) = *(syncPropertyValuePtr + i);
+                                    *(buffer + bufferPtrOffset) = *(idPtr + i);
                                     bufferPtrOffset++;
                                 }
-
-
-                                // Check if the last value was not the last value
-                                if (y < syncObject._syncPropertyValues.Length-1)
+                            }
+                            fixed (char* idSeperatorPtr = ID_SEPERATOR)
+                            {
+                                for (int i = 0; i < ID_SEPERATOR.Length; i++)
                                 {
-                                    // Not the last value, insert Seperator
-                                    fixed (char* valueSeperatorPtr = VALUE_SEPERATOR)
+                                    *(buffer + bufferPtrOffset) = *(idSeperatorPtr + i);
+                                    bufferPtrOffset++;
+                                }
+                            }
+                            #endregion
+
+
+                            #region Add Property values
+                            for (int y = 0; y < syncObject._syncPropertyValues.Length; y++)
+                            {
+                                fixed (char* syncPropertyValuePtr = syncObject._syncPropertyValues[y])
+                                {
+                                    // Add the Value
+                                    for (int i = 0; i < syncObject._syncPropertyValues[y].Length; i++)
                                     {
-                                        for (int i = 0; i < VALUE_SEPERATOR.Length; i++)
+                                        *(buffer + bufferPtrOffset) = *(syncPropertyValuePtr + i);
+                                        bufferPtrOffset++;
+                                    }
+
+
+                                    // Check if the last value was not the last value
+                                    if (y < syncObject._syncPropertyValues.Length - 1)
+                                    {
+                                        // Not the last value, insert Seperator
+                                        fixed (char* valueSeperatorPtr = VALUE_SEPERATOR)
                                         {
-                                            *(buffer + bufferPtrOffset) = *(valueSeperatorPtr + i);
-                                            bufferPtrOffset++;
+                                            for (int i = 0; i < VALUE_SEPERATOR.Length; i++)
+                                            {
+                                                *(buffer + bufferPtrOffset) = *(valueSeperatorPtr + i);
+                                                bufferPtrOffset++;
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                        #endregion
+                            #endregion
 
 
-                        #region Add the object Seperator
-                        // Check if the last value was not the last value
-                        if (syncObjectNumber < _syncObjectList.Count - 1)
-                        {
-                            // Not the last value, insert Seperator
-                            fixed (char* objectSeperatorPtr = OBJECT_SEPERATOR)
+                            #region Add the object Seperator
+                            // Check if the last value was not the last value
+                            if (syncObjectNumber < _syncObjectList.Count - 1)
                             {
-                                for (int i = 0; i < OBJECT_SEPERATOR.Length; i++)
+                                // Not the last value, insert Seperator
+                                fixed (char* objectSeperatorPtr = OBJECT_SEPERATOR)
                                 {
-                                    *(buffer + bufferPtrOffset) = *(objectSeperatorPtr + i);
-                                    bufferPtrOffset++;
+                                    for (int i = 0; i < OBJECT_SEPERATOR.Length; i++)
+                                    {
+                                        *(buffer + bufferPtrOffset) = *(objectSeperatorPtr + i);
+                                        bufferPtrOffset++;
+                                    }
+                                }
+                            }
+                            #endregion
+                        }
+                    }
+
+                    unsafe void AddMessageLengthToMessage(uint length)
+                    {
+                        string messageLength = length.ToString();
+                        fixed (char* syncMessagePtr = syncMessage)
+                        {
+                            fixed (char* strLengthPtr = messageLength)
+                            {
+                                for (int i = 0; i < messageLength.Length; i++)
+                                {
+                                    *(syncMessagePtr + i) = *(strLengthPtr + i);
                                 }
                             }
                         }
-                        #endregion
+
+                        for (int i = messageLength.Length; i < 12; i++)
+                        {
+                            syncMessage[i] = '*';
+                        }
+                    }
+
+                    void AddMessageEndSymbol()
+                    {
+                        syncMessage[syncMessage.Length - 2] = '|';
+                        syncMessage[syncMessage.Length - 1] = '|';
                     }
                 }
 
+            }
+            catch (Exception e)
+            {
 
-
-                //string dataToSend = string.Empty;
-
-                //// Checken ob sich die Größe des dataSets geändert hat
-                //if (dataSet.Length != _syncObjectList.Count)
-                //{
-                //    // Größe hat sich geändert dataset neu initialisieren
-                //    dataSet = new string[_syncObjectList.Count];
-                //}
-
-                //// Build data
-                //Parallel.For(0, _syncObjectList.Count, currentNumber =>
-                //{
-                //    // Check if object is indexed
-                //    if (currentNumber < _syncObjectList.Count)
-                //    {
-                //        var thing = (SyncObject)_syncObjectList[currentNumber];
-                //        if (thing?.ID == "0")
-                //        {
-                //            var index = Interlocked.Increment(ref _currentIdentifier);
-                //            thing.InitObject(index, _propInfos);
-                //        }
-
-                //        // Get Property values  
-                //        dataSet[currentNumber] = $"{thing.ID}{IDSEPERATOR}";
-                //        foreach (var prop in _propInfos)
-                //        {
-                //            dataSet[currentNumber] = $"{dataSet[currentNumber]}{prop.GetValue(thing)},";
-                //            //dataSet[currentNumber] += prop.GetValue(_syncObjectList[currentNumber]) + ",";
-                //        }
-                //        dataSet[currentNumber] = dataSet[currentNumber].Remove(dataSet[currentNumber].Length - 1, 1); /// OPT - hier wird ein neuer String erstellt
-                //    }
-                //});
-
-                //var numberOfTasks = _syncObjectList.Count / 10;
-                //var currentNumberOfTasks = numberOfTasks - 1;
-                //var dataSetNumber = _syncObjectList.Count;
-                //_syncObjectList.IsSourceUpdating = false;
-
-                //// Daten komprimieren
-                //while (true)
-                //{
-
-                //    // Alles Tasks bis auf den letzten ausführen
-                //    Parallel.For(0, currentNumberOfTasks + 1, currentNumber => // Muss +1 sein?
-                //    {
-                //        var start = currentNumber * 10;
-                //        var end = currentNumber * 10 + 10;
-
-                //        for (int i = start + 1; i < end; i++)
-                //        {
-                //            dataSet[start] += SEPERATOR + dataSet[i];
-                //        }
-                //    });
-
-
-                //    // Den letzten Task ausführen
-                //    currentNumberOfTasks++;
-                //    for (int i = (currentNumberOfTasks * 10) + 1; i < dataSetNumber; i++)
-                //    {
-                //        dataSet[currentNumberOfTasks * 10] += SEPERATOR + dataSet[i];
-                //    }
-
-
-                //    // Daten sortieren
-                //    var sortRange = currentNumberOfTasks == 1 ? 1 : dataSet.Length % 10 == 0 ? currentNumberOfTasks : currentNumberOfTasks + 1;
-                //    var multiplier = dataSet.Length > 10 ? 10 : 1;
-                //    for (int i = 0; i < sortRange; i++)
-                //    {
-                //        dataSet[i] = dataSet[i * multiplier];
-                //    }
-
-                //    if (currentNumberOfTasks / 10 > 9 == false)
-                //    {
-                //        break;
-                //    }
-                //    dataSetNumber = currentNumberOfTasks + 1;
-                //    currentNumberOfTasks = currentNumberOfTasks / 10 - 1;
-                //}
-
-
-                //var range = currentNumberOfTasks == 1 ? 1 : dataSet.Length % 10 == 0 ? currentNumberOfTasks : currentNumberOfTasks + 1;
-                //for (int i = 0; i < range; i++)
-                //{
-                //    dataToSend += dataSet[i] + SEPERATOR;
-                //}
-                //dataToSend = dataToSend.Remove(dataToSend.Length - SEPERATOR.Length, SEPERATOR.Length);
-                //Debug.WriteLine($"time to process data: {_swCycle.Elapsed}");
-
-
-                //// Send data
-                //if (_client.IsConnected)
-                //{
-                //    _client.SendToServer(dataToSend).Wait();
-                //}
-
-                //Debug.WriteLine($"time to process and send data: {_swCycle.Elapsed}");
-                //while (_swCycle.ElapsedMilliseconds < _settings.UpdateCycleTimeMs)
-                //{
-                //    var waitMs = _settings.UpdateCycleTimeMs - (int)_swCycle.ElapsedMilliseconds;
-                //    Task.Delay(waitMs).Wait();
-                //}
-
-                //CycleTime = _sw.Elapsed;
-                //Task.Run(() => CycleTimeChanged?.Invoke(CycleTime));
-                //Debug.WriteLine($"Complete cycle time: {_sw.Elapsed}");
             }
         }
 

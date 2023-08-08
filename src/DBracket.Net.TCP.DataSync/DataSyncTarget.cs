@@ -50,7 +50,9 @@ namespace DBracket.Net.TCP.DataSync
             // Init Server
             _server = new Server();
             _server.NewMessageRecieved += HandleServerMessageRecieved;
-            _server.StartListeningForIncomingConnection("Data Sync", address, port);
+            var settings = new ServerClientSettings(address, port, true);
+            _server.AddClient(settings);
+            //_server.StartListeningForIncomingConnection("Data Sync", address, port);
 
             Task.Run(() => HandleDataInput());
         }
