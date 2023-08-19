@@ -29,11 +29,6 @@ namespace DBracket.Net.TCP.DataSync.Example
                 People.Add(new Person("James", "Nobody", i, "Somewhere I belong"));
             }
 
-            //for (int i = 0; i < 1; i++)
-            //{
-            //    TargetPeople.Add(new Person("", "", 0, ""));
-            //}
-
             var settings = new DataSyncSourceSettings(IPAddress.Parse(SourceIPAddress), SourcePort, AlwaysKeepUpdating, UpdateCycleTimeMs);
             _syncSource = new DataSyncSource(settings, People);
             _syncSource.ConncetionStateChanged += HandleConncetionStateChanged;
@@ -177,7 +172,6 @@ namespace DBracket.Net.TCP.DataSync.Example
         #region "-------------------------------- Commands ---------------------------------"
         public ICommand CreateDataCommand => new RelayCommand<double>(HandleCreateDataCommand);
         public ICommand DeleteDataCommand => new RelayCommand<Person>(HandleDeleteDataCommand);
-
         public ICommand Commands => new RelayCommand<string>(HandleCommands);
         #endregion
         #endregion

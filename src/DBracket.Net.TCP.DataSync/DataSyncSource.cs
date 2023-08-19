@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net;
 using System.Reflection;
 
@@ -7,16 +6,17 @@ namespace DBracket.Net.TCP.DataSync
 {
     public class DataSyncSource
     {
-        // Add length to message
-        // Only resize Buffer if to small
-
-        // Set buffer zero after every cycle
-        // Send Span of Buffer, with zeros cut off
+        // ToDo:
+        //      - Set buffer zero after every cycle
 
         #region "----------------------------- Private Fields ------------------------------"C
         internal static string OBJECT_SEPERATOR = $"|;";
+        internal static char[] C_OBJECT_SEPERATOR = new char[] { '|', ';' };
         internal static string ID_SEPERATOR = $";_";
+        internal static char[] C_ID_SEPERATOR = new char[] { ';', '_' };
         internal static string VALUE_SEPERATOR = $";*";
+        internal static char[] C_VALUE_SEPERATOR = new char[] { ';', '*' };
+        internal static char[] C_MESSAGE_END_SEPERATOR = new char[] { '|', '|' };
 
         private ulong _currentIdentifier = 1;
 
@@ -33,6 +33,9 @@ namespace DBracket.Net.TCP.DataSync
         private Type _syncObjectType;
         private PropertyInfo[] _propInfos;
         internal static Dictionary<string, int> _propertyIndexLookupTable = new();
+
+        private string ID = "1";
+        private bool _receiverHandled = true;
         #endregion
 
 
@@ -58,14 +61,17 @@ namespace DBracket.Net.TCP.DataSync
         #region "----------------------------- Public Methods ------------------------------"
         public void SetSettings(DataSyncSourceSettings settings)
         {
+            // ToDo
+            //      - Stop current sync operation
             _settings = settings;
             _client.SetServerIPAddress(settings.IPAddress.ToString());
             _client.SetPortNumber(settings.Port.ToString());
+            _client.NewMessageReceived += HandleMessageReceived;
         }
 
-        public async void StartSyncData()
+        public void StartSyncData()
         {
-            await _client.ConnectToServer();
+            _client.ConnectToServer().Wait();
             _syncDataActive = true;
             Task.Run(() => SyncDataWithTarget());
         }
@@ -75,8 +81,31 @@ namespace DBracket.Net.TCP.DataSync
             _syncDataActive = false;
             _client.CloseAndDisconnect();
         }
+        #endregion
 
-        private string ID = "1";
+        #region "----------------------------- Private Methods -----------------------------"
+        private void Init(IPAddress address, int port)
+        {
+            // Get object infos
+            _syncObjectType = _syncObjectList.GetType().GenericTypeArguments[0];
+            _propInfos = _syncObjectType.GetProperties().Where(x => x.GetCustomAttribute<SyncPropertyAttribute>() is not null).ToArray();
+            for (int index = 0; index < _propInfos.Length; index++)
+            {
+                _propertyIndexLookupTable.Add(_propInfos[index].Name, index);
+            }
+
+            // Initialize id's of the objects
+            foreach (SyncObject syncObject in _syncObjectList)
+            {
+                syncObject.InitObject(_currentIdentifier++, _propInfos);
+            }
+
+            // Initialize the client
+            _client = new Client();
+            _client.ConnectionChanged += HandleConnectionStateChanged;
+            _client.SetServerIPAddress(address.ToString());
+            _client.SetPortNumber(port.ToString());
+        }
 
         private void SyncDataWithTarget()
         {
@@ -97,7 +126,7 @@ namespace DBracket.Net.TCP.DataSync
                     }
 
                     // Wait until the current List updates are done
-                    while (_syncObjectList.IsUpdating)
+                    while (_syncObjectList.IsUpdating || !_receiverHandled)
                     {
                         if (!_syncDataActive)
                         {
@@ -107,6 +136,7 @@ namespace DBracket.Net.TCP.DataSync
                     }
 
                     // Start new Cycle
+                    _receiverHandled = false;
                     _syncObjectList.IsSourceUpdating = true;
                     _sw.Restart();
                     _swCycle.Restart();
@@ -126,6 +156,8 @@ namespace DBracket.Net.TCP.DataSync
                     }
 
                     uint currentPosition = 12;
+                    // ToDo:
+                    //      - Parallel?
                     for (int syncObjectNumber = 0; syncObjectNumber < _syncObjectList.Count; syncObjectNumber++)
                     {
                         var syncObject = (SyncObject)_syncObjectList[syncObjectNumber];
@@ -136,10 +168,6 @@ namespace DBracket.Net.TCP.DataSync
                     AddMessageLengthToMessage((uint)(syncMessage.Length - 34 + 2));
                     AddMessageEndSymbol();
 
-
-                    //var t = new string(syncMessage);
-                    //var tmp2 = 0;
-
                     Debug.WriteLine($"time to process data: {_swCycle.Elapsed}");
 
 
@@ -148,15 +176,6 @@ namespace DBracket.Net.TCP.DataSync
                     {
                         try
                         {
-                            //char[] test2 = new char[20];
-                            //var y = 0;
-                            //for (int i = syncMessage.Length-20; i < syncMessage.Length; i++)
-                            //{
-                            //    test2[y++] = syncMessage[i];
-                            //}
-                            var t = syncMessage[syncMessage.Length - 1];
-                            var t2= syncMessage[syncMessage.Length - 2];
-
                             _client.SendToServer(syncMessage).Wait();
                         }
                         catch (Exception ex)
@@ -284,39 +303,22 @@ namespace DBracket.Net.TCP.DataSync
 
             }
         }
-
-        #endregion
-
-        #region "----------------------------- Private Methods -----------------------------"
-        private void Init(IPAddress address, int port)
-        {
-            // Get object infos
-            _syncObjectType = _syncObjectList.GetType().GenericTypeArguments[0];
-            _propInfos = _syncObjectType.GetProperties().Where(x => x.GetCustomAttribute<SyncPropertyAttribute>() is not null).ToArray();
-            for (int index = 0; index < _propInfos.Length; index++)
-            {
-                _propertyIndexLookupTable.Add(_propInfos[index].Name, index);
-            }
-
-            // Initialize id's of the objects
-            foreach (SyncObject syncObject in _syncObjectList)
-            {
-                syncObject.InitObject(_currentIdentifier++, _propInfos);
-            }
-
-            // Initialize the client
-            _client = new Client();
-            _client.ConnectionChanged += HandleConnectionStateChanged;
-            _client.SetServerIPAddress(address.ToString());
-            _client.SetPortNumber(port.ToString());
-        }
         #endregion
 
         #region "------------------------------ Event Handling -----------------------------"
         private void HandleConnectionStateChanged(bool newState)
         {
             IsConnectedToTarget = newState;
+            _receiverHandled = true;
             Task.Run(() => ConncetionStateChanged?.Invoke(newState));
+        }
+
+        private void HandleMessageReceived(string message)
+        {
+            if (message == "d")
+            {
+                _receiverHandled = true;
+            }
         }
         #endregion
         #endregion

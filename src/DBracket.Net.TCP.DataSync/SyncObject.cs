@@ -98,15 +98,6 @@ namespace DBracket.Net.TCP.DataSync
 
             return length;
         }
-
-        internal void UpdateSyncMessage()
-        {
-            foreach (var syncProperty in _syncPropertyValues)
-            {
-
-            }
-        }
-
         #endregion
 
         #region "------------------------------ Event Handling -----------------------------"

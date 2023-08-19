@@ -20,7 +20,6 @@ namespace DBracket.Net.TCP.DataSync
         #region "----------------------------- Public Methods ------------------------------"
         public string GetID(int index)
         {
-            return "1";
             var t = Items.ElementAt(index) as SyncObject;
             return t.ID;
         }
@@ -48,13 +47,6 @@ namespace DBracket.Net.TCP.DataSync
 
         bool ISyncList.IsSourceUpdating { get => _isSourceUpdating; set { _isSourceUpdating = value; } }
         private bool _isSourceUpdating;
-
-        //bool ISyncList.IsUpdating => throw new NotImplementedException();
-
-        //bool ISyncList.IsSourceUpdating { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-        //DataSyncSource? ISyncList.SyncSource { get => _syncSource; set { _syncSource = value; } }
-        //internal DataSyncSource? _syncSource;
         #endregion
 
         #region "--------------------------------- Events ----------------------------------"

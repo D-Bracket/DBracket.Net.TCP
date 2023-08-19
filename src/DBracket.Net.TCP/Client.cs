@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
 
 namespace DBracket.Net.TCP
@@ -239,7 +234,7 @@ namespace DBracket.Net.TCP
 
         private void ReportNewMessage(string message)
         {
-            Task.Run(() => NewMessageRecieved?.Invoke(message));
+            Task.Run(() => NewMessageReceived?.Invoke(message));
         }
         #endregion
 
@@ -275,7 +270,7 @@ namespace DBracket.Net.TCP
         public event ConnectionChangedHandler? ConnectionChanged;
         public delegate void ConnectionChangedHandler(bool newState);
 
-        public event HandleMessageRecieved? NewMessageRecieved;
+        public event HandleMessageRecieved? NewMessageReceived;
         public delegate void HandleMessageRecieved(string message);
         #endregion
         #endregion    

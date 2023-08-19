@@ -1,10 +1,5 @@
 using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml.Documents;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -15,9 +10,6 @@ namespace DBracket.Net.TCP.DataSync.WinUI3
     {
         #region "----------------------------- Private Fields ------------------------------"
         private DispatcherQueue _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-
-
-
         #endregion
 
 
@@ -26,10 +18,6 @@ namespace DBracket.Net.TCP.DataSync.WinUI3
         public DataSyncTarget(IPAddress address, int port, IList syncObject) : base(address, port, syncObject)
         {
         }
-        //public DataSyncTarget(IPAddress address, int port, IList syncObject)
-        //{
-        //    _target = new(address, port, syncObject);
-        //}
         #endregion
 
 
@@ -38,6 +26,8 @@ namespace DBracket.Net.TCP.DataSync.WinUI3
         #region "----------------------------- Public Methods ------------------------------"
         protected override void UpdateListObjects()
         {
+            // ToDo:
+            //      - Delete SyncObjects
             var taskCompletionSource = new TaskCompletionSource();
 
             _ = _dispatcherQueue.TryEnqueue(new DispatcherQueueHandler(() =>
